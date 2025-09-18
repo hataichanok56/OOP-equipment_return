@@ -1,3 +1,4 @@
+// src/main/java/com/example/sportsloan/repository/EquipmentRepository.java
 package com.example.sportsloan.repository;
 
 import com.example.sportsloan.domain.Equipment;

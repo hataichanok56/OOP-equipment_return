@@ -1,3 +1,4 @@
+// src/main/java/com/example/sportsloan/service/EquipmentService.java
 package com.example.sportsloan.service;
 
 import com.example.sportsloan.domain.*;
@@ -10,43 +11,47 @@ public class EquipmentService {
     private final EquipmentRepository repo;
     private final List<BorrowRecord> ledger = Collections.synchronizedList(new ArrayList<>());
 
-    public EquipmentService() {
-        this.repo = new InMemoryEquipmentRepository();
+    // DIP: allow inject other repo impl in tests
+    public EquipmentService() { this(new InMemoryEquipmentRepository()); }
+    public EquipmentService(EquipmentRepository repo) {
+        this.repo = repo;
         seed();
     }
 
     private void seed() {
-        addItem("ลูกบาสเก็ตบอล", 12);
-        addItem("ลูกฟุตบอล", 18);
-        addItem("แร็คเก็ตแบดมินตัน", 24);
-        addItem("เชือกกระโดด", 10);
+        addItem("บอล", 10);
+        addItem("บาส", 10);
+        addItem("ลูกขนไก่", 10);
+        addItem("วอลเลย์บอล", 10);
+        addItem("เชปะตะกร้อ", 10);
+        addItem("ไม้แบด", 10);
     }
 
-    // Admin
-    public Equipment addItem(String name, int total) {
+    // ===== Menu: Add / Delete / Search =====
+    public Equipment addItem(String name, int total){
         long id = repo.nextId();
         return repo.save(Equipment.create(id, name, total));
     }
-    public boolean deleteItem(long id) { return repo.deleteById(id); }
-    public Collection<Equipment> search(String keyword) { return repo.search(keyword); }
-    public Equipment update(long id, String name, Integer total, Integer stock){
+    public boolean deleteItem(long id){ return repo.deleteById(id); }
+    public Collection<Equipment> searchItem(String keyword){ return repo.search(keyword); }
+    public Collection<Equipment> listAll(){ return repo.findAll(); }
+    public Equipment updateItem(long id, String newName, Integer newTotal, Integer newStock){
         Equipment e = repo.findById(id).orElseThrow();
-        if (name!=null && !name.isBlank()) e.setName(name);
-        if (total!=null) e.setTotal(total);
-        if (stock!=null) e.setStock(stock);
+        if (newName!=null) e.setName(newName);
+        if (newTotal!=null) e.setTotal(newTotal);
+        if (newStock!=null) e.setStock(newStock);
         return repo.save(e);
     }
-    public Collection<Equipment> listAll(){ return repo.findAll(); }
 
-    // User
-    public int borrow(StudentId sid, String equipmentName, int qty) {
+    // ===== Borrow / Return =====
+    public int borrow(StudentId sid, String equipmentName, int qty){
         Equipment e = repo.findByName(equipmentName).orElseThrow();
         if (!e.borrow(qty)) throw new IllegalStateException("สต็อกคงเหลือไม่พอ");
         ledger.add(new BorrowRecord(sid, e.getName(), qty));
         repo.save(e);
         return e.getStock();
     }
-    public int giveBack(StudentId sid, String equipmentName, int qty) {
+    public int giveBack(StudentId sid, String equipmentName, int qty){
         Equipment e = repo.findByName(equipmentName).orElseThrow();
         e.giveBack(qty);
         ledger.stream()
@@ -58,10 +63,11 @@ public class EquipmentService {
         return e.getStock();
     }
 
-    // Ledger
-    public List<BorrowRecord> byStudent(String studentId) {
+    // ===== Records =====
+    public List<BorrowRecord> byStudent(String studentId){
+        String q = studentId==null? "" : studentId.trim();
         return ledger.stream()
-                .filter(r -> r.getStudentId().value().equalsIgnoreCase(studentId))
+                .filter(r -> r.getStudentId().value().equalsIgnoreCase(q))
                 .collect(Collectors.toList());
     }
 }

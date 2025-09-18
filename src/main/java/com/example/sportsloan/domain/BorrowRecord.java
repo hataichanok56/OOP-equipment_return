@@ -1,3 +1,4 @@
+// src/main/java/com/example/sportsloan/domain/BorrowRecord.java
 package com.example.sportsloan.domain;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,6 @@ public class BorrowRecord {
         this.qty = qty;
         this.borrowedAt = LocalDateTime.now();
     }
-
     public void markReturned() { this.returnedAt = LocalDateTime.now(); }
 
     public StudentId getStudentId() { return studentId; }

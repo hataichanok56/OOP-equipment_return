@@ -1,4 +1,3 @@
-<!-- pom.xml -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -7,7 +6,6 @@
   <groupId>com.example</groupId>
   <artifactId>sportsloan</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
@@ -16,7 +14,6 @@
   </properties>
 
   <dependencies>
-    <!-- JavaFX (Mac ARM) -->
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
@@ -33,26 +30,12 @@
 
   <build>
     <plugins>
-      <!-- ให้ mvn javafx:run ทำงานได้ -->
       <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>
         <version>0.0.8</version>
         <configuration>
-          <!-- ให้ตรงกับแพ็กเกจ/คลาสจริง -->
           <mainClass>com.example.sportsloan.ui.MainApp</mainClass>
-          <launcher>app</launcher>
-          <stripNativeCommands>false</stripNativeCommands>
-        </configuration>
-      </plugin>
-
-      <!-- ตั้งค่า compiler ให้แน่ใจว่าใช้ release 17 -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
-          <release>17</release>
         </configuration>
       </plugin>
     </plugins>

@@ -1,58 +1,47 @@
+// src/main/java/com/example/sportsloan/ui/ReturnPanel.java
 package com.example.sportsloan.ui;
 
 import com.example.sportsloan.domain.StudentId;
-import com.example.sportsloan.domain.Equipment;
 import com.example.sportsloan.service.EquipmentService;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 public class ReturnPanel {
-    private final EquipmentService service = new EquipmentService();
-    private final ObservableList<Equipment> data =
-            FXCollections.observableArrayList(service.listAll());
+    private final EquipmentService service;
+    public ReturnPanel(EquipmentService service){ this.service = service; }
 
-    public BorderPane getView() {
-        BorderPane root = new BorderPane();
+    public BorderPane getView(){
+        BorderPane root = new BorderPane(); root.setPadding(new Insets(16));
 
-        ListView<Equipment> list = new ListView<>(data);
-        list.setCellFactory(param -> new ListCell<>() {
-            @Override
-            protected void updateItem(Equipment eq, boolean empty) {
-                super.updateItem(eq, empty);
-                if (empty || eq == null) setText(null);
-                else setText(eq.getName() + " (คงเหลือ " + eq.getStock() + ")");
-            }
-        });
+        ListView<String> list = new ListView<>();
+        list.setItems(FXCollections.observableArrayList(
+                service.listAll().stream().map(e -> e.getName()+" ("+e.getStock()+")").toList()
+        ));
 
-        TextField studentField = new TextField();
-        studentField.setPromptText("รหัสนิสิต");
+        ComboBox<String> cb = new ComboBox<>();
+        cb.setPromptText("อุปกรณ์"); cb.getItems().setAll(service.listAll().stream().map(e->e.getName()).toList());
 
-        Spinner<Integer> qtySpinner = new Spinner<>(1, 10, 1);
+        Spinner<Integer> qty = new Spinner<>(1, 999, 1);
+        TextField sid = new TextField(); sid.setPromptText("รหัสนิสิต");
+        Button ret = new Button("ทำการคืน");
+        Label msg = new Label();
 
-        Button returnBtn = new Button("ทำการคืน");
-        returnBtn.setOnAction(e -> {
-            Equipment selected = list.getSelectionModel().getSelectedItem();
-            if (selected == null) { showError("เลือกอุปกรณ์ก่อน"); return; }
+        ret.setOnAction(e -> {
             try {
-                StudentId sid = new StudentId(studentField.getText().trim());
-                service.giveBack(sid, selected.getName(), qtySpinner.getValue());
-                data.setAll(service.listAll());
-            } catch (Exception ex) {
-                showError(ex.getMessage());
-            }
+                int left = service.giveBack(new StudentId(sid.getText().trim()), cb.getValue(), qty.getValue());
+                msg.setText("คืนสำเร็จ คงเหลือ: " + left);
+                list.setItems(FXCollections.observableArrayList(
+                        service.listAll().stream().map(x -> x.getName()+" ("+x.getStock()+")").toList()
+                ));
+            } catch (Exception ex){ msg.setText("ผิดพลาด: "+ex.getMessage()); }
         });
 
-        VBox right = new VBox(10, new Label("รหัสนิสิต:"), studentField,
-                new Label("จำนวนที่จะคืน:"), qtySpinner, returnBtn);
+        VBox right = new VBox(10, new Label("คืนอุปกรณ์"), cb, qty, sid, ret, msg);
 
         root.setLeft(list);
         root.setCenter(right);
         return root;
-    }
-
-    private void showError(String msg) {
-        new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK).showAndWait();
     }
 }
